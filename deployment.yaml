@@ -1,0 +1,30 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: library-bot
+  namespace: automation
+  labels:
+    app: library-bot
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: library-bot
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: library-bot
+    spec:
+      tolerations:
+        - operator: Exists
+      hostNetwork: true
+      dnsPolicy: ClusterFirstWithHostNet
+      containers:
+      - name: mdns
+        image: 192.168.89.2:5000/local/book-bot:latest
+        resources:
+          requests:
+            cpu: 50m
+            memory: 50Mi
