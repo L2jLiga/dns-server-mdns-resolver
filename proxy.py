@@ -15,13 +15,11 @@ from dnslib.server import DNSServer, BaseResolver, DNSLogger, DNSHandler
 class MdnsResolver(BaseResolver):
     timeout: float = 1.
 
-    @classmethod
-    def __init__(cls, timeout: float = 1.):
-        cls.timeout = timeout
+    def __init__(self, timeout: float = 1.):
+        self.timeout = timeout
 
     # Gets a multicast socket for use in mDNS queries and responses.
-    @classmethod
-    def get_mdns_socket(cls):
+    def get_mdns_socket(self):
         # Set up a listening socket so we can sniff out all the mDNS traffic on the
         # network. REUSEADDR is required on all systems, REUSEPORT also for OS X.
         sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
@@ -36,11 +34,13 @@ class MdnsResolver(BaseResolver):
 
         return sock
 
-    @classmethod
-    def resolve(cls, request: DNSRecord, handler: DNSHandler) -> DNSRecord:
-        with cls.get_mdns_socket() as sock:
+    def resolve(self, request: DNSRecord, handler: DNSHandler) -> DNSRecord:
+        with self.get_mdns_socket() as sock:
             reply = request.reply()
-            if request.q.qtype not in [getattr(QTYPE, "A"), getattr(QTYPE, "AAAA")] or not request.q.qname.matchSuffix("local"):
+            if request.q.qtype not in [
+                getattr(QTYPE, "A"),
+                getattr(QTYPE, "AAAA"),
+            ] or not request.q.qname.matchSuffix("local"):
                 reply.header.rcode = getattr(RCODE, "NXDOMAIN")
                 return reply
 
@@ -48,8 +48,8 @@ class MdnsResolver(BaseResolver):
             sock.sendto(request.pack(), ("224.0.0.251", 5353))
 
             # Handle incoming responses until we find ours, or time out.
-            wait_until = time.time() + cls.timeout
-            timer = Timer(cls.timeout, sock.close)
+            wait_until = time.time() + self.timeout
+            timer = Timer(self.timeout, sock.close)
             while wait_until >= time.time():
                 buf = sock.recv(16384)
 
@@ -91,8 +91,7 @@ if __name__ == "__main__":
                    help="Log prefix (timestamp/handler/resolver) (default: False)")
     args = p.parse_args()
 
-    print("Starting Proxy Resolver (%s:%d -> mDNS) [%s]" % (
-        args.address or "*", args.port, "UDP"))
+    print(f"Starting Proxy Resolver ({args.address or "*"}:{args.port} -> mDNS) [UDP]")
 
     udp_server = DNSServer(resolver=MdnsResolver(),
                            port=args.port,
