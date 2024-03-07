@@ -91,7 +91,7 @@ if __name__ == "__main__":
                    help="Log prefix (timestamp/handler/resolver) (default: False)")
     args = p.parse_args()
 
-    print(f"Starting Proxy Resolver ({args.address or "*"}:{args.port} -> mDNS) [UDP]")
+    print(f"Starting Proxy Resolver ({args.address or '*'}:{args.port} -> mDNS) [UDP]")
 
     udp_server = DNSServer(resolver=MdnsResolver(),
                            port=args.port,
