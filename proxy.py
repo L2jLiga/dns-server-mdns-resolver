@@ -106,6 +106,10 @@ if __name__ == "__main__":
             sys.stdout.flush()
     except KeyboardInterrupt:
         pass
+    except:
+        sys.stderr.flush()
+        sys.stdout.flush()
+        pass
     finally:
         if udp_server.isAlive():
             udp_server.stop()
