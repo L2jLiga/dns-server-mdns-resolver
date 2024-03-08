@@ -1,6 +1,7 @@
 [MAIN]
 disable=
-    missing-docstring
+    missing-docstring,
+	bare-except
 
 [FORMAT]
 
