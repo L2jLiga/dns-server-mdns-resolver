@@ -1,0 +1,74 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: dns-server
+spec:
+  selector:
+    matchLabels:
+      app: dns-server
+  template:
+    metadata:
+      labels:
+        app: dns-server
+    spec:
+      containers:
+        - name: dnsproxy
+          image: adguard/dnsproxy:v0.65.2
+          args:
+            - '--upstream=[/local/]127.0.0.1:5053'
+            - '--upstream=tls://dns.google'
+            - '--upstream=tls://1dot1dot1dot1.cloudflare-dns.com'
+            - '--upstream=tls://dns10.quad9.net'
+            - '--port=5052'
+          ports:
+            - hostPort: 5052
+              containerPort: 5052
+              protocol: UDP
+          securityContext:
+            capabilities:
+              add:
+                - NET_RAW
+                - NET_ADMIN
+              drop:
+                - ALL
+            privileged: true
+        - name: dns-server-mdns-converter
+          image: ghcr.io/l2jliga/dns-server-mdns-resolver:master
+          ports:
+            - hostPort: 5053
+              containerPort: 5053
+              protocol: UDP
+          imagePullPolicy: Always
+          securityContext:
+            capabilities:
+              add:
+                - NET_RAW
+                - NET_BROADCAST
+              drop:
+                - ALL
+            privileged: false
+      nodeSelector:
+        kubernetes.io/os: linux
+      hostNetwork: true
+      tolerations:
+        - operator: Exists
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: dns-server
+  name: dns-server
+spec:
+  ipFamilies:
+  - IPv4
+  - IPv6
+  ipFamilyPolicy: PreferDualStack
+  ports:
+    - name: dns
+      port: 53
+      targetPort: 5052
+      protocol: UDP
+  selector:
+    app: dns-server
+  type: LoadBalancer
