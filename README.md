@@ -2,6 +2,10 @@
 
 Simple DNS Server which proxy queries to mDNS and returning answers back.
 
+## Deprecation notice
+
+I've switched to systemd-resolced with LLMNR and MDNS turned on, this solves all my use cases. as well I've setup AdGuardHome to resolve all ".local" domains via stub resolver (127.0.0.53).
+
 ## Use cases
 
 - Use in combination with [`dnsproxy`] or [`AdGuardHome`] in order to provide ability resolve mDNS hosts by client that support only classic DNS (mostly old Android version)
